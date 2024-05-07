@@ -1,6 +1,11 @@
 import subprocess
 import sys
 import flet as ft
+from flet import (
+    FilePicker,
+    FilePickerResultEvent,
+    Text,
+)
 
 
 def troca_tema(e):
@@ -55,7 +60,7 @@ def main(page: ft.Page):
 
     def baixar_musica(e):
         url_spotify = msc.value
-        destino = fold.value
+        destino = directory_path.value
         if not url_spotify.strip() or not destino.strip():
             r.value = "Por favor, insira o link e o caminho da pasta."
             page.update()
@@ -80,15 +85,26 @@ def main(page: ft.Page):
 
     def limpa_campos(e):
         msc.value = ""
-        fold.value = ""
+        directory_path.value = ""
         r.value = ""
         page.update()
+
+        # Diálogo para selecionar diretório
+
+    def get_directory_result(e: FilePickerResultEvent):
+        directory_path.value = e.path if e.path else "Cancelled!"
+        directory_path.update()
+    get_directory_dialog = FilePicker(on_result=get_directory_result)
+    directory_path = Text()
+
+    # hide all dialogs in overlay
+    page.overlay.extend([get_directory_dialog, directory_path])
 
     r = ft.Text()
     t = ft.Text()
     msc = ft.TextField(label="Link de Música", icon=ft.icons.MUSIC_NOTE)
-    fold = ft.TextField(label="Destino", icon=ft.icons.FOLDER_SPECIAL)
     b = ft.ElevatedButton(text="Baixar", on_click=baixar_musica)
+    fold = ft.ElevatedButton(text="Destino", on_click=get_directory_dialog.get_directory_path)
     reset = ft.ElevatedButton(text="Limpar campos", on_click=limpa_campos)
 
     cg = ft.RadioGroup(content=ft.Row([
